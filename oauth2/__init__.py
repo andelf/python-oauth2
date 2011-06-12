@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 """
 
+
+import sys
 import base64
 import time
 import random
@@ -36,6 +38,7 @@ except ImportError:
 import hmac
 import binascii
 import httplib2
+
 
 try:
     from urlparse import parse_qs
@@ -63,6 +66,10 @@ __version__ = _version.__version__
 OAUTH_VERSION = '1.0'  # Hi Blaine!
 HTTP_METHOD = 'GET'
 SIGNATURE_METHOD = 'PLAINTEXT'
+
+
+def except_as():
+    return sys.exc_info()[1]
 
 
 class Error(RuntimeError):
@@ -113,7 +120,8 @@ def to_unicode(s):
             raise TypeError('You are required to pass either unicode or string here, not: %r (%s)' % (type(s), s))
         try:
             s = s.decode('utf-8')
-        except UnicodeDecodeError as le:
+        except UnicodeDecodeError:
+            le = except_as()
             raise TypeError('You are required to pass either a unicode object or a utf-8 string here. You passed a Python string object which contained non-utf-8: %r. The UnicodeDecodeError that resulted from attempting to interpret it as utf-8 was: %s' % (s, le,))
     return s
 
@@ -142,7 +150,8 @@ def to_unicode_optional_iterator(x):
 
     try:
         l = list(x)
-    except TypeError as e:
+    except TypeError:
+        e = except_as()
         assert 'is not iterable' in str(e)
         return x
     else:
@@ -158,7 +167,8 @@ def to_utf8_optional_iterator(x):
 
     try:
         l = list(x)
-    except TypeError as e:
+    except TypeError:
+        e = except_as()
         assert 'is not iterable' in str(e)
         return x
     else:
@@ -470,7 +480,8 @@ class Request(dict):
             else:
                 try:
                     value = list(value)
-                except TypeError as e:
+                except TypeError:
+                    e = except_as()
                     assert 'is not iterable' in str(e)
                     items.append((to_utf8_if_string(key), to_utf8_if_string(value)))
                 else:
